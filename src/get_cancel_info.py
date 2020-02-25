@@ -80,7 +80,9 @@ def main():
         df = df.append(sr, ignore_index=True)
 
     # 列名を残したままリストに変換するマジック
-    update_sheet.main(df.reset_index().T.reset_index().T.values.tolist(), "cancel_new")
+    dataframe = df.reset_index().T.reset_index().T.values.tolist()
+    sheetname = "cancel_new"
+    update_sheet.main(dataframe, sheetname)
     # df.to_csv("cancel_new.csv", index=False)
 
 

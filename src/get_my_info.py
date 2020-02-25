@@ -6,6 +6,8 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import pandas as pd
+import get_sheet
+import update_sheet
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -19,8 +21,8 @@ def main():
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
+    if os.path.exists("cale_token.pickle"):
+        with open("cale_token.pickle", "rb") as token:
             creds = pickle.load(token)
             # print("refresh")
     # If there are no (valid) credentials available, let the user log in.
@@ -33,7 +35,7 @@ def main():
             )
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open("token.pickle", "wb") as token:
+        with open("cale_token.pickle", "wb") as token:
             pickle.dump(creds, token)
 
     service = build("calendar", "v3", credentials=creds)
@@ -41,9 +43,15 @@ def main():
     # Call the Calendar API
     now = datetime.datetime.utcnow().isoformat() + "Z"  # 'Z' indicates UTC time
     print("Getting the upcoming 10 events")
-    df_calendar = pd.read_csv("calendar.csv")
+
+    # df_calendar = pd.read_csv("calendar.csv")
+    df_calendar = pd.DataFrame(
+        get_sheet.main("calendar")[1:], columns=["name", "calendarid"]
+    )
+    print()
+
     for index, row in df_calendar.iterrows():
-        # print(index, row["name"], row["calendarid"])
+        print(index, row["name"], row["calendarid"])
         events_result = (
             service.events()
             .list(
@@ -75,7 +83,11 @@ def main():
             )
             df = df.append(sr, ignore_index=True)
 
-        df.to_csv(row["name"] + "_info.csv", index=False)
+        # df.to_csv(row["name"] + "_info.csv", index=False)
+
+        dataframe = df.reset_index().T.reset_index().T.values.tolist()
+        sheetname = row["name"]
+        update_sheet.main(dataframe, sheetname)
 
 
 if __name__ == "__main__":
