@@ -7,6 +7,7 @@ from google.auth.transport.requests import Request
 
 
 def main(dataframe, sheetname):
+    # test
     creds = None
     SCOPES = "https://www.googleapis.com/auth/spreadsheets"
     if os.path.exists("sheet_token.pickle"):
@@ -65,8 +66,6 @@ def main(dataframe, sheetname):
 
 
 if __name__ == "__main__":
-    sheetname = "シート1"
+    sheetname = "test"
     dataframe = [[1, 2, 3], [4, 5, 6]]
     main(dataframe, sheetname)
-
-

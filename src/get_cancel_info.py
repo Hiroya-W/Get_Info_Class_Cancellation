@@ -7,6 +7,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import pandas as pd
 import mojimoji
+import update_sheet
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -20,8 +21,8 @@ def main():
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
+    if os.path.exists("cale_token.pickle"):
+        with open("cale_token.pickle", "rb") as token:
             creds = pickle.load(token)
             # print("refresh")
     # If there are no (valid) credentials available, let the user log in.
@@ -34,7 +35,7 @@ def main():
             )
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open("token.pickle", "wb") as token:
+        with open("cale_token.pickle", "wb") as token:
             pickle.dump(creds, token)
 
     service = build("calendar", "v3", credentials=creds)
@@ -78,7 +79,9 @@ def main():
         )
         df = df.append(sr, ignore_index=True)
 
-    df.to_csv("cancel_new.csv", index=False)
+    # 列名を残したままリストに変換するマジック
+    update_sheet.main(df.reset_index().T.reset_index().T.values.tolist(), "cancel_new")
+    # df.to_csv("cancel_new.csv", index=False)
 
 
 if __name__ == "__main__":
