@@ -126,7 +126,7 @@ venv.bak/
 dmypy.json
 
 # Pyre type checker
-.pyre/ 
+.pyre/
 
 
 .venv
@@ -134,5 +134,4 @@ dmypy.json
 event.json
 secret
 
-cale_token.pickle
-sheet_token.pickle
+token.pickle
