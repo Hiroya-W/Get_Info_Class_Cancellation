@@ -7,15 +7,35 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import pandas as pd
+import get_sheet
+import update_sheet
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
 def get_diff():
-    df_new = pd.read_csv("cancel_new.csv")
+    # df_new = pd.read_csv("cancel_new.csv")
+    df_new = pd.DataFrame(
+        get_sheet.main("cancel_new")[1:],
+        columns=["index", "id", "summary", "start_date", "end_date"],
+    ).set_index("index")
 
-    df_old = pd.read_csv("cancel_old.csv")
+    # df_old = pd.read_csv("cancel_old.csv")
+    df_old = pd.DataFrame(
+        get_sheet.main("cancel_old")[1:],
+        columns=["index", "id", "summary", "start_date", "end_date"],
+    ).set_index("index")
+
+    if df_new.empty and df_old.empty:
+        df_create = pd.DataFrame(
+            [], columns=["index", "id", "summary", "start_date", "end_date"]
+        ).set_index("index")
+        df_delete = pd.DataFrame(
+            [], columns=["index", "id", "summary", "start_date", "end_date"]
+        ).set_index("index")
+        return df_create, df_delete
+
     df_old["start_date"] = pd.to_datetime(df_old["start_date"])
     # print(datetime.datetime.now().date())
     # df_old = df_old[df_old["start_date"] >= datetime.datetime.now()]
@@ -61,7 +81,10 @@ def main():
 
     service = build("calendar", "v3", credentials=creds)
 
-    df_calendar = pd.read_csv("calendar.csv")
+    # df_calendar = pd.read_csv("calendar.csv")
+    df_calendar = pd.DataFrame(
+        get_sheet.main("calendar")[1:], columns=["name", "calendarid"]
+    )
     # fmt: off
     # create
     for index, row in df_create.iterrows():
@@ -81,7 +104,11 @@ def main():
     for index, delete_row in df_delete.iterrows():
         for index, calendar_row in df_calendar.iterrows():
             if calendar_row["name"] in delete_row["summary"]:
-                df_my = pd.read_csv(calendar_row["name"] + "_info.csv")
+                # df_my = pd.read_csv(calendar_row["name"] + "_info.csv")
+                df_my = pd.DataFrame(
+                    get_sheet.main("calendar")[1:], columns=["index","id","summary","start_date","end_date"]
+                ).set_index("index")
+
                 for index, myinfo_row in df_my.iterrows():
                     # print(delete_row["summary"] == myinfo_row["summary"])
                     # print(delete_row["start_date"] == pd.to_datetime(myinfo_row["start_date"]))
@@ -94,7 +121,15 @@ def main():
                         ).execute()
                         print("Event deleted")
     # fmt: on
-    pd.read_csv("cancel_new.csv").to_csv("cancel_old.csv", index=False)
+    # pd.read_csv("cancel_new.csv").to_csv("cancel_old.csv", index=False)
+    df_new = pd.DataFrame(
+        get_sheet.main("cancel_new")[1:],
+        columns=["index", "id", "summary", "start_date", "end_date"],
+    )
+
+    dataframe = df_new.reset_index().T.reset_index().T.values.tolist()
+    sheetname = "cancel_old"
+    update_sheet.main(dataframe, sheetname)
 
 
 if __name__ == "__main__":
