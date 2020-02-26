@@ -125,7 +125,7 @@ def main():
     df_new = pd.DataFrame(
         get_sheet.main("cancel_new")[1:],
         columns=["index", "id", "summary", "start_date", "end_date"],
-    )
+    ).set_index("index")
 
     dataframe = df_new.reset_index().T.reset_index().T.values.tolist()
     sheetname = "cancel_old"

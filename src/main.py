@@ -3,10 +3,7 @@ import get_my_info
 import create_delete_schedule
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-twische = BlockingScheduler()
 
-
-@twische.scheduled_job("interval", minutes=1)
 def job():
     # 休講情報を取得
     get_cancel_info.main()
@@ -16,4 +13,12 @@ def job():
     create_delete_schedule.main()
 
 
-twische.start()
+if __name__ == "__main__":
+    scheduler = BlockingScheduler()
+    scheduler.add_job(job, "cron", minute=30)
+    # scheduler.add_job(job, "interval", minutes=1)
+
+    try:
+        scheduler.start()
+    except KeyboardInterrupt:
+        pass
