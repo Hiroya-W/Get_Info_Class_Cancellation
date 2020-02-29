@@ -11,7 +11,7 @@ def main(sheetname):
     creds = None
     SCOPES = "https://www.googleapis.com/auth/spreadsheets"
     if os.path.exists("sheet_token.pickle"):
-        with open("token.pickle", "rb") as token:
+        with open("sheet_token.pickle", "rb") as token:
             creds = pickle.load(token)
     # If there are no (valid) crsecret/edentials available, let the user log in.
     if not creds or not creds.valid:
@@ -24,7 +24,7 @@ def main(sheetname):
 
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open("token.pickle", "wb") as token:
+        with open("sheet_token.pickle", "wb") as token:
             pickle.dump(creds, token)
 
     service = build("sheets", "v4", credentials=creds)
